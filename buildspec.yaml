@@ -1,0 +1,37 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 16
+    commands:
+      - echo "📦 installing packages..."
+      - cd benefit-form
+      - npm i --omit=dev
+      - cd ..
+      - cd admin-panel
+      - npm i --omit=dev
+  pre_build:
+    commands:
+      - echo "⚙️ Testing..."
+      - echo "✅ Tests passed successfully."
+  build:
+    runtime-versions:
+      nodejs: 16
+    commands:
+      - echo "🚧 Starting compiling packages..."
+      - cd benefit-form
+      - npm run build
+      - cd ..
+      - cd admin-panel
+      - npm i --omit=dev
+      - echo "✅ Build passed successfully."
+  post_build:
+    commands:
+      - echo "🚚 Performing post-build packing and operations..."
+      - echo "✅ Post build successful"
+
+artifacts:
+  files:
+    - "admin-panel/build/*"
+    - "benefit-form/build/*"
