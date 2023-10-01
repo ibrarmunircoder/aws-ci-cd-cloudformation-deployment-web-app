@@ -6,11 +6,8 @@ phases:
       nodejs: 16
     commands:
       - echo "📦 installing packages..."
-      - cd benefit-form
-      - npm i --omit=dev
-      - cd ..
-      - cd admin-panel
-      - npm i --omit=dev
+      - npm --prefix ./benefit-form i --omit=dev
+      - npm i --prefix ./admin-panel --omit=dev
   pre_build:
     commands:
       - echo "⚙️ Testing..."
@@ -18,11 +15,8 @@ phases:
   build:
     commands:
       - echo "🚧 Starting compiling packages..."
-      - cd benefit-form
-      - npm run build
-      - cd ..
-      - cd admin-panel
-      - npm i --omit=dev
+      - npm --prefix ./benefit-form run build
+      - npm --prefix ./admin-panel run build
       - echo "✅ Build passed successfully."
   post_build:
     commands:
