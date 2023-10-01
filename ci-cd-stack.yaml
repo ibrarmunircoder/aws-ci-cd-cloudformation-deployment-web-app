@@ -2,6 +2,7 @@ Parameters:
   S3ArtifactBucketName:
     Type: String
     Description: Name of the S3 bucket to store build artifact.
+    Default: mailing-label-artifact
 
 Resources:
   CodeBuildRole:
@@ -39,8 +40,8 @@ Resources:
                   - "s3:ListBucket"
                 Resource:
                   - Fn::Sub: arn:aws:s3:::codepipeline-${AWS::Region}-*
-                  - Fn::Sub: arn:aws:s3:::${ArtifactStoreS3Location}/*
-                  - Fn::Sub: arn:aws:s3:::${ArtifactStoreS3Location}
+                  - Fn::Sub: arn:aws:s3:::${S3ArtifactBucketName}/*
+                  - Fn::Sub: arn:aws:s3:::${S3ArtifactBucketName}
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
