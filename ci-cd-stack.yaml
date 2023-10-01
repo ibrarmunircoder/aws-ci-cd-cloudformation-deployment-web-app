@@ -43,6 +43,62 @@ Resources:
                   - Fn::Sub: arn:aws:s3:::${S3ArtifactBucketName}/*
                   - Fn::Sub: arn:aws:s3:::${S3ArtifactBucketName}
 
+  CodeDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: ["sts:AssumeRole"]
+            Effect: Allow
+            Principal:
+              Service: [codedeploy.amazonaws.com]
+
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: Mailing-Label-App
+      ComputePlatform: Server
+
+  BenefitFormDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    DependsOn: CodeDeployApplication
+    Properties:
+      ApplicationName: !Ref CodeDeployApplication
+      ServiceRoleArn: !GetAtt CodeDeployRole.Arn
+      Ec2TagFilters:
+        - Key: Name
+          Value: mailing-label-form
+          Type: KEY_AND_VALUE
+      DeploymentGroupName: BenefitFormDeploymentGroup
+
+  AdminPanelDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    DependsOn: CodeDeployApplication
+    Properties:
+      ApplicationName: !Ref CodeDeployApplication
+      ServiceRoleArn: !GetAtt CodeDeployRole.Arn
+      Ec2TagFilters:
+        - Key: Name
+          Value: mailing-label-admin-panel
+          Type: KEY_AND_VALUE
+      DeploymentGroupName: AdminPanelDeploymentGroup
+
+  MailingBackendAppDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    DependsOn: CodeDeployApplication
+    Properties:
+      ApplicationName: !Ref CodeDeployApplication
+      ServiceRoleArn: !GetAtt CodeDeployRole.Arn
+      Ec2TagFilters:
+        - Key: Name
+          Value: mailing-label-backend-app
+          Type: KEY_AND_VALUE
+      DeploymentGroupName: MailingBackendAppDeploymentGroup
+
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     DependsOn: CodeBuildRole
