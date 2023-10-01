@@ -57,6 +57,57 @@ Resources:
             Principal:
               Service: [codedeploy.amazonaws.com]
 
+  CodePipelineRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName:
+        Fn::Sub: CodePipelineRole-${AWS::StackName}
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "codepipeline.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: "CodePipelineCICDAccessPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:DeleteObject"
+                  - "s3:GetObject"
+                  - "s3:GetObjectVersion"
+                  - "s3:ListBucket"
+                  - "s3:PutObject"
+                  - "s3:GetBucketPolicy"
+                Resource:
+                  - Fn::Sub: arn:aws:s3:::${S3ArtifactBucketName}
+                  - Fn::Sub: arn:aws:s3:::${S3ArtifactBucketName}/*
+              - Effect: "Allow"
+                Action:
+                  - "sns:Publish"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "codebuild:StartBuild"
+                  - "codebuild:BatchGetBuilds"
+                Resource:
+                  - Fn::Sub: arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/Mailing-Label-App-Build-Project
+                  - Fn::Sub: arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:build/Mailing-Label-App-Build-Project:*
+              - Effect: Allow
+                Action:
+                  - "codedeploy:CreateDeployment"
+                  - "codedeploy:GetApplicationRevision"
+                  - "codedeploy:GetDeployment"
+                  - "codedeploy:GetDeploymentConfig"
+                  - "codedeploy:RegisterApplicationRevision"
+                Resource: "*"
+
   CodeDeployApplication:
     Type: AWS::CodeDeploy::Application
     Properties:
@@ -74,6 +125,11 @@ Resources:
           Value: mailing-label-form
           Type: KEY_AND_VALUE
       DeploymentGroupName: BenefitFormDeploymentGroup
+      DeploymentConfigName: CodeDeployDefault.OneAtATime
+      AutoRollbackConfiguration:
+        Enable: true
+        Events:
+          - DEPLOYMENT_FAILURE
 
   AdminPanelDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
@@ -86,6 +142,11 @@ Resources:
           Value: mailing-label-admin-panel
           Type: KEY_AND_VALUE
       DeploymentGroupName: AdminPanelDeploymentGroup
+      DeploymentConfigName: CodeDeployDefault.OneAtATime
+      AutoRollbackConfiguration:
+        Enable: true
+        Events:
+          - DEPLOYMENT_FAILURE
 
   MailingBackendAppDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
@@ -98,6 +159,11 @@ Resources:
           Value: mailing-label-backend-app
           Type: KEY_AND_VALUE
       DeploymentGroupName: MailingBackendAppDeploymentGroup
+      DeploymentConfigName: CodeDeployDefault.OneAtATime
+      AutoRollbackConfiguration:
+        Enable: true
+        Events:
+          - DEPLOYMENT_FAILURE
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -123,3 +189,30 @@ Resources:
       SourceVersion: main
       Triggers:
         Webhook: true
+
+  MailingLabelPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: MailingLabelPipeline
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref S3ArtifactBucketName
+      Stages:
+        - Name: Source Checkout
+          Actions:
+            - Name: Source Code
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: Github
+              OutputArtifacts:
+                - Name: ApplicationCodeOutput
+              Configuration:
+                Owner: ibrarmunircoder
+                Repo: aws-ci-cd-cloudformation-deployment-web-app
+                Branch: main
+                PollForSourceChanges: false
+                OAuthToken:
+              RunOrder: 1
