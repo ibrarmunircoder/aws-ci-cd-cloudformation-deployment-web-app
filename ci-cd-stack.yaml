@@ -19,7 +19,7 @@ Resources:
                 - "codebuild.amazonaws.com"
             Action:
               - "sts:AssumeRole"
-      Path: /service-role/
+      Path: /
       Policies:
         - PolicyName: "CodeBuildCICDAccessPolicy"
           PolicyDocument:
