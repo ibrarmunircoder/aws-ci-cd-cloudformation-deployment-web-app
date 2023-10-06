@@ -29,6 +29,7 @@ Resources:
                   - "iam:CreateRole"
                   - "iam:CreateInstanceProfile"
                   - "iam:AddRoleToInstanceProfile"
+                  - "iam:PutRolePolicy"
                 Resource: "*"
               - Effect: Allow
                 Action:
