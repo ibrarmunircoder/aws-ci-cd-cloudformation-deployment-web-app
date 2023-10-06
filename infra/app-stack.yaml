@@ -3,6 +3,36 @@ Resources:
     Type: AWS::CloudFormation::Stack
     TemplateURL: https://public-cfn-nested-templates.s3.amazonaws.com/vpc-nested-stack.yml
     TimeoutInMinutes: 5
+
+  CodeDeployIAMInstanceProfileRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: MyCICDEC2InstanceProfilePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:Get*'
+                  - 's3:List*'
+                Resource: '*'
+
+  MailingLabelInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref CodeDeployIAMInstanceProfileRole
   
   BenefitSecurityGroup:
     GroupDescription: Benefit Apps Security Group
@@ -161,6 +191,7 @@ Resources:
       ImageId: ami-0261755bbcb8c4a84
       InstanceType: t2.small
       KeyName: hp-key-pair
+      IamInstanceProfile: !Ref MailingLabelInstanceProfile
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
@@ -176,6 +207,10 @@ Resources:
           #!/bin/bash -xe
            sudo apt update -y 
            sudo apt install -y build-essential python3-pip
+           sudo apt install -y ruby wget
+           wget https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install
+           chmod +x ./install
+           sudo ./install auto
            sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
            # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
            sudo /usr/local/bin/cfn-init -s ${AWS::StackId} -r BenefitFormInstance --configsets MailingLabelConfigSet --region ${AWS::Region} || error_exit 'Failed to run cfn-init'

@@ -285,7 +285,9 @@ Resources:
 
   BenefitFormDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
-    DependsOn: CodeDeployApplication
+    DependsOn:
+      - CodeDeployApplication
+      - CodeDeployRole
     Properties:
       ApplicationName: !Ref CodeDeployApplication
       ServiceRoleArn: !GetAtt CodeDeployRole.Arn
@@ -296,13 +298,15 @@ Resources:
       DeploymentGroupName: BenefitFormDeploymentGroup
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       AutoRollbackConfiguration:
-        Enable: true
+        Enable: "true"
         Events:
           - DEPLOYMENT_FAILURE
 
   AdminPanelDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
-    DependsOn: CodeDeployApplication
+    DependsOn:
+      - CodeDeployApplication
+      - CodeDeployRole
     Properties:
       ApplicationName: !Ref CodeDeployApplication
       ServiceRoleArn: !GetAtt CodeDeployRole.Arn
@@ -313,13 +317,15 @@ Resources:
       DeploymentGroupName: AdminPanelDeploymentGroup
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       AutoRollbackConfiguration:
-        Enable: true
+        Enable: "true"
         Events:
           - DEPLOYMENT_FAILURE
 
   MailingBackendAppDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
-    DependsOn: CodeDeployApplication
+    DependsOn:
+      - CodeDeployApplication
+      - CodeDeployRole
     Properties:
       ApplicationName: !Ref CodeDeployApplication
       ServiceRoleArn: !GetAtt CodeDeployRole.Arn
@@ -330,7 +336,7 @@ Resources:
       DeploymentGroupName: MailingBackendAppDeploymentGroup
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       AutoRollbackConfiguration:
-        Enable: true
+        Enable: "true"
         Events:
           - DEPLOYMENT_FAILURE
 
