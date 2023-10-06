@@ -5,7 +5,7 @@ Resources:
     TimeoutInMinutes: 5
 
   CodeDeployIAMInstanceProfileRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -14,7 +14,7 @@ Resources:
             Principal:
               Service:
                 - ec2.amazonaws.com
-            Action: 'sts:AssumeRole'
+            Action: "sts:AssumeRole"
       Path: /
       Policies:
         - PolicyName: MyCICDEC2InstanceProfilePolicy
@@ -23,30 +23,29 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - 's3:Get*'
-                  - 's3:List*'
-                Resource: '*'
+                  - "s3:Get*"
+                  - "s3:List*"
+                Resource: "*"
 
   MailingLabelInstanceProfile:
-    Type: 'AWS::IAM::InstanceProfile'
+    Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: /
       Roles:
         - !Ref CodeDeployIAMInstanceProfileRole
-  
+
   BenefitSecurityGroup:
     GroupDescription: Benefit Apps Security Group
     SecurityGroupIngress:
       - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
-          CidrIp: 0.0.0.0/0
+        FromPort: "22"
+        ToPort: "22"
+        CidrIp: 0.0.0.0/0
       - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: 0.0.0.0/0
+        FromPort: "80"
+        ToPort: "80"
+        CidrIp: 0.0.0.0/0
     VpcId: !GetAtt VpcStack.Outputs.VpcId
-
 
   BenefitFormInstance:
     Type: AWS::EC2::Instance

@@ -273,9 +273,24 @@ Resources:
                 Resource: "*"
               - Effect: "Allow"
                 Action:
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:CreateUploadBucket"
+                  - "cloudformation:DeleteStack"
+                  - "cloudformation:Describe*"
+                  - "cloudformation:List*"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:ValidateTemplate"
+                  - "cloudformation:ExecuteChangeSet"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
                   - "iam:PassRole"
                 Resource:
                   - Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/CloudFormationRole-${AWS::StackName}
+              - Effect: "Allow"
+                Action: "codestar-connections:UseConnection"
+                Resource: arn:aws:codestar-connections:us-east-1:212446767488:connection/528b9270-5d4a-4a40-a26d-e85faad67d70
 
   CodeDeployApplication:
     Type: AWS::CodeDeploy::Application
@@ -298,7 +313,7 @@ Resources:
       DeploymentGroupName: BenefitFormDeploymentGroup
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       AutoRollbackConfiguration:
-        Enable: "true"
+        Enabled: "true"
         Events:
           - DEPLOYMENT_FAILURE
 
@@ -317,7 +332,7 @@ Resources:
       DeploymentGroupName: AdminPanelDeploymentGroup
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       AutoRollbackConfiguration:
-        Enable: "true"
+        Enabled: "true"
         Events:
           - DEPLOYMENT_FAILURE
 
@@ -336,7 +351,7 @@ Resources:
       DeploymentGroupName: MailingBackendAppDeploymentGroup
       DeploymentConfigName: CodeDeployDefault.OneAtATime
       AutoRollbackConfiguration:
-        Enable: "true"
+        Enabled: "true"
         Events:
           - DEPLOYMENT_FAILURE
 
@@ -374,22 +389,20 @@ Resources:
         Type: S3
         Location: !Ref S3ArtifactBucketName
       Stages:
-        - Name: Source Checkout
+        - Name: SourceCheckout
           Actions:
-            - Name: Source Code
+            - Name: SourceCode
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
+                Owner: AWS
                 Version: 1
-                Provider: Github
+                Provider: CodeStarSourceConnection
               OutputArtifacts:
                 - Name: ApplicationCodeOutput
               Configuration:
-                Owner: ibrarmunircoder
-                Repo: aws-ci-cd-cloudformation-deployment-web-app
-                Branch: main
-                PollForSourceChanges: false
-                OAuthToken: "{{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}"
+                ConnectionArn: arn:aws:codestar-connections:us-east-1:212446767488:connection/528b9270-5d4a-4a40-a26d-e85faad67d70
+                FullRepositoryId: ibrarmunircoder/aws-ci-cd-cloudformation-deployment-web-app
+                BranchName: main
               RunOrder: 1
         - Name: Build
           Actions:
@@ -424,7 +437,7 @@ Resources:
                 RoleArn: !GetAtt [CloudFormationRole, Arn]
                 Capabilities: CAPABILITY_NAMED_IAM
                 StackName: MailingLabelAppStack
-                TemplatePath: MailingLabelArtifact::infra/app-stack.yml
+                TemplatePath: MailingLabelArtifact::infra/app-stack.yaml
               RunOrder: 1
             - Name: ExecuteAppCfnChangeSet
               InputArtifacts:
