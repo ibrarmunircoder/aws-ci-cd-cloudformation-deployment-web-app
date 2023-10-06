@@ -1,8 +1,9 @@
 Resources:
   VpcStack:
     Type: AWS::CloudFormation::Stack
-    TemplateURL: https://public-cfn-nested-templates.s3.amazonaws.com/vpc-nested-stack.yml
-    TimeoutInMinutes: 5
+    Properties:
+      TemplateURL: https://public-cfn-nested-templates.s3.amazonaws.com/vpc-nested-stack.yml
+      TimeoutInMinutes: 5
 
   CodeDeployIAMInstanceProfileRole:
     Type: "AWS::IAM::Role"
