@@ -36,17 +36,19 @@ Resources:
         - !Ref CodeDeployIAMInstanceProfileRole
 
   BenefitSecurityGroup:
-    GroupDescription: Benefit Apps Security Group
-    SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: "22"
-        ToPort: "22"
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: "80"
-        ToPort: "80"
-        CidrIp: 0.0.0.0/0
-    VpcId: !GetAtt VpcStack.Outputs.VpcId
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Benefit Apps Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: 0.0.0.0/0
+      VpcId: !GetAtt VpcStack.Outputs.VpcId
 
   BenefitFormInstance:
     Type: AWS::EC2::Instance
