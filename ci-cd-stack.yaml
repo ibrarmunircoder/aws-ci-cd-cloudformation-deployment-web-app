@@ -26,6 +26,12 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - "iam:CreateRole"
+                  - "iam:CreateInstanceProfile"
+                  - "iam:AddRoleToInstanceProfile"
+                Resource: "*"
+              - Effect: Allow
+                Action:
                   - "ec2:AcceptVpcPeeringConnection"
                   - "ec2:AcceptVpcEndpointConnections"
                   - "ec2:AllocateAddress"
