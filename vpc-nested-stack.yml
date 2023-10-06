@@ -337,3 +337,38 @@ Resources:
     Properties:
       RouteTableId: !Ref RouteTableWeb
       SubnetId: !Ref SubnetWebC
+
+Outputs:
+  VpcId:
+    Description: The VPC ID
+    Value: !Ref Vpc
+
+  SubnetWebAId:
+    Description: The id of the Web A subnet
+    Value: !Ref SubnetWebA
+  SubnetWebBId:
+    Description: The id of the Web B subnet
+    Value: !Ref SubnetWebB
+  SubnetWebCId:
+    Description: The id of the Web C subnet
+    Value: !Ref SubnetWebC
+
+  SubnetDbAId:
+    Description: The id of the DB A subnet
+    Value: !Ref SubnetDbA
+  SubnetDbBId:
+    Description: The id of the DB B subnet
+    Value: !Ref SubnetDbB
+  SubnetDbCId:
+    Description: The id of the DB C subnet
+    Value: !Ref SubnetDbC
+
+  SubnetAppAId:
+    Description: The id of the App A subnet
+    Value: !Ref SubnetAppA
+  SubnetAppBId:
+    Description: The id of the App B subnet
+    Value: !Ref SubnetAppB
+  SubnetAppCId:
+    Description: The id of the App C subnet
+    Value: !Ref SubnetAppC

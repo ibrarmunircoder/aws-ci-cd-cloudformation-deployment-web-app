@@ -28,3 +28,5 @@ artifacts:
     - "admin-panel/build/*"
     - "benefit-form/build/*"
     - "backend-app/*"
+    - "infra/*"
+    - "appspec.yaml"
