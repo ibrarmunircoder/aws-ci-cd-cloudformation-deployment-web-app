@@ -25,8 +25,8 @@ phases:
 
 artifacts:
   files:
-    - "admin-panel/build/*"
-    - "benefit-form/build/*"
+    - "admin-panel/build/**/*"
+    - "benefit-form/build/**/*"
     - "backend-app/*"
     - "infra/*"
     - "infra/scripts/*"
