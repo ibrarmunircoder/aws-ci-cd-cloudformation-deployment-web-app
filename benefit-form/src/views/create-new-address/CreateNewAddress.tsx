@@ -328,14 +328,6 @@ export const CreateNewAddress = () => {
                 Pact Bin near you.
               </Typography>
             </Typography>
-            <Typography
-              sx={{
-                ...formHeaderTypographyStyles,
-                marginTop: "20px",
-              }}
-            >
-              CI CD Pipeline Test
-            </Typography>
           </Box>
           {isShippingLabelSent
             ? shippingLabelSuccessMessageElement
