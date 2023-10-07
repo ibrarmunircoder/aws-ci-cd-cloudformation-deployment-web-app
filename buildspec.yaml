@@ -29,4 +29,4 @@ artifacts:
     - "benefit-form/build/*"
     - "backend-app/*"
     - "infra/*"
-    - "appspec.yaml"
+    - "appspec.yml"
