@@ -658,11 +658,12 @@ Resources:
               sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
               npm i -g pm2
               echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
-              "DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)"
-              echo "export DATABASE_USERNAME=${DB_USERNAME}" >> /etc/profile
+              DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)
+              echo "export DATABASE_USERNAME=$DB_USERNAME" >> /etc/profile
 
-              "DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)"
-              echo "export DATABASE_PASSWORD=${DB_USER_PASSWORD}" >> /etc/profile
+              DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)
+
+              echo "export DATABASE_PASSWORD=$DB_USER_PASSWORD" >> /etc/profile
 
               echo "export DATABASE_PORT=5432" >> /etc/profile
 
@@ -712,8 +713,8 @@ Resources:
 
             - DbEndpoint: !GetAtt MailingLabelDbCluster.Endpoint.Address
 
-  RDSDbSubnetGroup:
-    Type: "AWS::RDS::DBSubnetGroup"
+  RDSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: "Subnet Group for Postgres database"
       DBSubnetGroupName: !Sub "${AWS::Region}-mailing-label-database-subnet-group"
@@ -729,6 +730,9 @@ Resources:
 
   MailingLabelDbCluster:
     Type: AWS::RDS::DBInstance
+    DependsOn:
+      - RDSDBSubnetGroup
+      - DbSecurityGroup
     Properties:
       DBInstanceIdentifier: mailing-label-db-cluster
       AllocatedStorage: 30
@@ -746,7 +750,7 @@ Resources:
       EnablePerformanceInsights: true
       PerformanceInsightsRetentionPeriod: 7
       DBSubnetGroupName: !Ref RDSDBSubnetGroup
-      DBSecurityGroups:
+      VPCSecurityGroups:
         - !Ref DbSecurityGroup
       Tags:
         - Key: Name
