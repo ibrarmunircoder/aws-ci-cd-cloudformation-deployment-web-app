@@ -334,7 +334,7 @@ export const CreateNewAddress = () => {
                 marginTop: "20px",
               }}
             >
-              First CI CD Pipeline
+              CI CD Pipeline Test
             </Typography>
           </Box>
           {isShippingLabelSent
