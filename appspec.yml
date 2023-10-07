@@ -3,6 +3,7 @@ os: linux
 files:
   - source: /
     destination: /tmp
+file_exists_behavior: OVERWRITE
 hooks:
   BeforeInstall:
     - location: infra/scripts/before_install.sh
@@ -10,9 +11,5 @@ hooks:
       runas: root
   AfterInstall:
     - location: infra/scripts/after_install.sh
-      timeout: 300
-      runas: root
-  ApplicationStop:
-    - location: infra/scripts/application_stop.sh
       timeout: 300
       runas: root
