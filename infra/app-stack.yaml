@@ -658,10 +658,10 @@ Resources:
               sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
               npm i -g pm2
               echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
-              DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)
+              "DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)"
               echo "export DATABASE_USERNAME=${DB_USERNAME}" >> /etc/profile
 
-              DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)
+              "DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)"
               echo "export DATABASE_PASSWORD=${DB_USER_PASSWORD}" >> /etc/profile
 
               echo "export DATABASE_PORT=5432" >> /etc/profile
