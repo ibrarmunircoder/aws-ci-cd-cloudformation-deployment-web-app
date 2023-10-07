@@ -6,6 +6,7 @@ Resources:
       TimeoutInMinutes: 5
 
   CodeDeployIAMInstanceProfileRole:
+    DeletionPolicy: Delete
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -29,6 +30,7 @@ Resources:
                 Resource: "*"
 
   MailingLabelInstanceProfile:
+    DeletionPolicy: Delete
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: /
@@ -36,6 +38,7 @@ Resources:
         - !Ref CodeDeployIAMInstanceProfileRole
 
   BenefitSecurityGroup:
+    DeletionPolicy: Delete
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Benefit Apps Security Group
@@ -52,6 +55,7 @@ Resources:
 
   BenefitFormInstance:
     Type: AWS::EC2::Instance
+    DeletionPolicy: Delete
     CreationPolicy:
       ResourceSignal:
         Timeout: PT5M
@@ -209,8 +213,9 @@ Resources:
           #!/bin/bash -xe
            sudo apt update -y 
            sudo apt install -y build-essential python3-pip
-           sudo apt install -y ruby wget
-           wget https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install
+           sudo apt install ruby-full -y
+           sudo apt install wget -y
+           wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
            chmod +x ./install
            sudo ./install auto
            sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
