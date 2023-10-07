@@ -712,17 +712,16 @@ Resources:
 
             - DbEndpoint: !GetAtt MailingLabelDbCluster.Endpoint.Address
 
-
   RDSDbSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
     Properties:
       DBSubnetGroupDescription: "Subnet Group for Postgres database"
       DBSubnetGroupName: !Sub "${AWS::Region}-mailing-label-database-subnet-group"
-      SubnetIds: 
+      SubnetIds:
         - !GetAtt VpcStack.Outputs.SubnetDbAId
         - !GetAtt VpcStack.Outputs.SubnetDbBId
         - !GetAtt VpcStack.Outputs.SubnetDbCId
-       Tags: 
+      Tags:
         - Key: Name
           Value: mailing-label-db-cluster
         - Key: Environment
@@ -749,12 +748,12 @@ Resources:
       DBSubnetGroupName: !Ref RDSDBSubnetGroup
       DBSecurityGroups:
         - !Ref DbSecurityGroup
-      Tags: 
+      Tags:
         - Key: Name
           Value: mailing-label-db-cluster
         - Key: Environment
           Value: Staging
-  
+
   # CreateDbEndpointParameter:
   #   DependsOn: MailingLabelDbCluster
   #   Type: AWS::SSM::Parameter
@@ -762,6 +761,6 @@ Resources:
   #     DataType: text
   #     Description: The database endpoint parameter
   #     Name: /mailing-label/backend/db-endpoint
-  #     Type: String 
+  #     Type: String
   #     Tier: Standard
   #     Value: !GetAtt MailingLabelDbCluster.Endpoint.Address
