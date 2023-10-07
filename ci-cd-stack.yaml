@@ -33,6 +33,8 @@ Resources:
                   - "iam:PassRole"
                   - "iam:DeleteRolePolicy"
                   - "iam:RemoveRoleFromInstanceProfile"
+                  - "iam:DeleteInstanceProfile"
+                  - "iam:DeleteRole"
                 Resource: "*"
               - Effect: Allow
                 Action:
