@@ -526,3 +526,17 @@ Resources:
                 ApplicationName: !Ref CodeDeployApplication
                 DeploymentGroupName: !Ref AdminPanelDeploymentGroup
               RunOrder: 1
+        - Name: DeployBackendApp
+          Actions:
+            - Name: DeployBackendAppCode
+              InputArtifacts:
+                - Name: MailingLabelArtifact
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CodeDeploy
+              Configuration:
+                ApplicationName: !Ref CodeDeployApplication
+                DeploymentGroupName: !Ref MailingBackendAppDeploymentGroup
+              RunOrder: 1
