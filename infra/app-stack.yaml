@@ -52,6 +52,21 @@ Resources:
           ToPort: "80"
           CidrIp: 0.0.0.0/0
       VpcId: !GetAtt VpcStack.Outputs.VpcId
+  AdminSecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Benefit Apps Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: 0.0.0.0/0
+      VpcId: !GetAtt VpcStack.Outputs.VpcId
 
   BenefitFormInstance:
     Type: AWS::EC2::Instance
@@ -113,7 +128,7 @@ Resources:
                 files:
                   - /etc/nginx/nginx.conf
                 sources:
-                  - /var/www/html
+                  - /var/www/
         AppConfig2:
           packages:
             apt:
@@ -179,13 +194,13 @@ Resources:
               mode: "000744"
               owner: root
               group: root
-            "/etc/nginx/conf.d/benefit.ibrarmunir.co":
+            "/etc/nginx/conf.d/benefit.ibrarmunir.co.conf":
               content: |
                 server {
                   listen 80 default_server;
-                  server_name benefit.ibrarmunir.co;
+                  server_name _;
                   location / {
-                    root /var/www/benefit;
+                    root /var/www/benefit-form;
                     index index.html index.htm;
                     try_files $uri $uri/ /index.html;
                   }
@@ -193,6 +208,9 @@ Resources:
               mode: "000744"
               owner: root
               group: root
+          commands:
+            01_add_benefit_form_dir:
+              command: "sudo mkdir -p /var/www/benefit-form"
     Properties:
       ImageId: ami-0261755bbcb8c4a84
       InstanceType: t2.small
@@ -208,6 +226,181 @@ Resources:
       Tags:
         - Key: Name
           Value: mailing-label-form
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -xe
+           sudo apt update -y 
+           sudo apt install -y build-essential python3-pip
+           sudo apt install ruby-full -y
+           sudo apt install wget -y
+           wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
+           chmod +x ./install
+           sudo ./install auto
+           sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+           # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
+           sudo /usr/local/bin/cfn-init -s ${AWS::StackId} -r BenefitFormInstance --configsets MailingLabelConfigSet --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
+           # Signal the status from cfn-init 
+           sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BenefitFormInstance --region ${AWS::Region}
+           # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
+           sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+  AdminPanelFormInstance:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Delete
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT5M
+    Metadata:
+      Comment: Deploy a react frontend app
+      AWS::CloudFormation::Init:
+        configSets:
+          MailingLabelConfigSet:
+            - AppConfig1
+            - AppConfig2
+        AppConfig1:
+          packages:
+            apt:
+              nginx: []
+              ca-certificates: []
+              curl: []
+              gnupg: []
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.BenefitFormInstance.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BenefitFormInstance --region ${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+          commands:
+            01_add_nodesource_key:
+              command: "sudo mkdir -p /etc/apt/keyrings"
+            02_download_nodesource_key:
+              command: "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg"
+            03_add_nodesource_repository:
+              command: 'echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_"$NODE_MAJOR".x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list'
+              env:
+                NODE_MAJOR: 16
+            04_update_apt_repositories:
+              command: "sudo apt update -y"
+            05_remove_nginx_config:
+              command: "sudo rm nginx.conf"
+              cwd: "/etc/nginx"
+          services:
+            sysvinit:
+              nginx:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/nginx/nginx.conf
+                sources:
+                  - /var/www/
+        AppConfig2:
+          packages:
+            apt:
+              nodejs: []
+          files:
+            "/etc/nginx/nginx.conf":
+              content: |
+                user www-data;
+                worker_processes auto;
+                pid /run/nginx.pid;
+                include /etc/nginx/modules-enabled/*.conf;
+                events {
+                    worker_connections 768;
+                    # multi_accept on;
+                }
+                http {
+                    sendfile on;
+                    tcp_nopush on;
+                    tcp_nodelay on;
+                    keepalive_timeout 65;
+                    types_hash_max_size 2048;
+                    # server_tokens off;
+
+                    # server_names_hash_bucket_size 64;
+                    # server_name_in_redirect off;
+
+                    include /etc/nginx/mime.types;
+                    default_type application/octet-stream;
+
+                    ##
+                    # SSL Settings
+                    ##
+
+                    ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE
+                    ssl_prefer_server_ciphers on;
+
+                    ##
+                    # Logging Settings
+                    ##
+
+                    access_log /var/log/nginx/access.log;
+                    error_log /var/log/nginx/error.log;
+
+                    ##
+                    # Gzip Settings
+                    ##
+
+                    gzip on;
+
+                    # gzip_vary on;
+                    # gzip_proxied any;
+                    # gzip_comp_level 6;
+                    # gzip_buffers 16 8k;
+                    # gzip_http_version 1.1;
+                    # gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+                    ##
+                    # Virtual Host Configs
+                    ##
+
+                    include /etc/nginx/conf.d/*.conf;
+                }
+              mode: "000744"
+              owner: root
+              group: root
+            "/etc/nginx/conf.d/admin.ibrarmunir.co.conf":
+              content: |
+                server {
+                  listen 80 default_server;
+                  server_name _;
+                  location / {
+                    root /var/www/admin-panel;
+                    index index.html index.htm;
+                    try_files $uri $uri/ /index.html;
+                  }
+                }
+              mode: "000744"
+              owner: root
+              group: root
+          commands:
+            01_add_benefit_form_dir:
+              command: "sudo mkdir -p /var/www/admin-panel"
+    Properties:
+      ImageId: ami-0261755bbcb8c4a84
+      InstanceType: t2.small
+      KeyName: hp-key-pair
+      IamInstanceProfile: !Ref MailingLabelInstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: !GetAtt VpcStack.Outputs.SubnetWebAId
+          DeleteOnTermination: "true"
+          GroupSet:
+            - !Ref AdminSecurityGroup
+      Tags:
+        - Key: Name
+          Value: mailing-label-admin-panel
       UserData:
         "Fn::Base64": !Sub |
           #!/bin/bash -xe

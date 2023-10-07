@@ -31,10 +31,13 @@ Resources:
                   - "iam:AddRoleToInstanceProfile"
                   - "iam:PutRolePolicy"
                   - "iam:PassRole"
+                  - "iam:DeleteRolePolicy"
+                  - "iam:RemoveRoleFromInstanceProfile"
                 Resource: "*"
               - Effect: Allow
                 Action:
                   - "ec2:AcceptVpcPeeringConnection"
+                  - "ec2:TerminateInstances"
                   - "ec2:RunInstances"
                   - "ec2:AcceptVpcEndpointConnections"
                   - "ec2:AllocateAddress"
@@ -474,4 +477,18 @@ Resources:
               Configuration:
                 ApplicationName: !Ref CodeDeployApplication
                 DeploymentGroupName: !Ref BenefitFormDeploymentGroup
+              RunOrder: 1
+        - Name: DeployAdminPanelApp
+          Actions:
+            - Name: DeployAdminPanelApp
+              InputArtifacts:
+                - Name: MailingLabelArtifact
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CodeDeploy
+              Configuration:
+                ApplicationName: !Ref CodeDeployApplication
+                DeploymentGroupName: !Ref AdminPanelDeploymentGroup
               RunOrder: 1
