@@ -27,7 +27,7 @@ artifacts:
   files:
     - "admin-panel/build/**/*"
     - "benefit-form/build/**/*"
-    - "backend-app/*"
+    - "backend-app/**/*"
     - "infra/*"
     - "infra/scripts/*"
     - "appspec.yml"

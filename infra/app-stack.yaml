@@ -1,3 +1,13 @@
+Parameters:
+  MasterUsername:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: The username for our database.
+    Default: /mailing-label/backend/db-username
+  MasterUserPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: The password for the database.
+    Default: /mailing-label/backend/db-password
+
 Resources:
   VpcStack:
     Type: AWS::CloudFormation::Stack
@@ -25,6 +35,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - "ssm:GetParameters"
+                  - "ssm:GetParameter"
+                  - "ssm:GetParametersByPath"
+                  - "ssm:PutParameter"
+                  - "ssm:DeleteParameter"
+                  - "ssm:DescribeParameters"
+                  - "ssm:DescribeParameter"
+                Resource: "*"
+              - Effect: Allow
+                Action:
                   - "s3:Get*"
                   - "s3:List*"
                 Resource: "*"
@@ -36,6 +56,34 @@ Resources:
       Path: /
       Roles:
         - !Ref CodeDeployIAMInstanceProfileRole
+
+  BackendSecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Benefit Apps Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: 0.0.0.0/0
+      VpcId: !GetAtt VpcStack.Outputs.VpcId
+
+  DbSecurityGroup:
+    DeletionPolicy: Delete
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Db Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "5432"
+          ToPort: "5432"
+          SourceSecurityGroupId: !GetAtt BackendSecurityGroup.GroupId
+      VpcId: !GetAtt VpcStack.Outputs.VpcId
 
   BenefitSecurityGroup:
     DeletionPolicy: Delete
@@ -424,3 +472,296 @@ Resources:
            sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource AdminPanelFormInstance --region ${AWS::Region}
            # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
            sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+  BackendInstance:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Delete
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT5M
+    Metadata:
+      Comment: Deploy a Backend app
+      AWS::CloudFormation::Init:
+        configSets:
+          MailingLabelConfigSet:
+            - AppConfig1
+            - AppConfig2
+        AppConfig1:
+          packages:
+            apt:
+              nginx: []
+              ca-certificates: []
+              curl: []
+              gnupg: []
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.BackendInstance.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BackendInstance --region ${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+          commands:
+            01_add_nodesource_key:
+              command: "sudo mkdir -p /etc/apt/keyrings"
+            02_download_nodesource_key:
+              command: "curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg"
+            03_add_nodesource_repository:
+              command: 'echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_"$NODE_MAJOR".x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list'
+              env:
+                NODE_MAJOR: 16
+            04_update_apt_repositories:
+              command: "sudo apt update -y"
+            05_remove_nginx_config:
+              command: "sudo rm nginx.conf"
+              cwd: "/etc/nginx"
+          services:
+            sysvinit:
+              nginx:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/nginx/nginx.conf
+                sources:
+                  - /var/www/
+                  - /etc/nginx/conf.d/
+        AppConfig2:
+          packages:
+            apt:
+              nodejs: []
+          files:
+            "/etc/nginx/nginx.conf":
+              content: |
+                user www-data;
+                worker_processes auto;
+                pid /run/nginx.pid;
+                include /etc/nginx/modules-enabled/*.conf;
+                events {
+                    worker_connections 768;
+                    # multi_accept on;
+                }
+                http {
+                    sendfile on;
+                    tcp_nopush on;
+                    tcp_nodelay on;
+                    keepalive_timeout 65;
+                    types_hash_max_size 2048;
+                    # server_tokens off;
+
+                    # server_names_hash_bucket_size 64;
+                    # server_name_in_redirect off;
+
+                    include /etc/nginx/mime.types;
+                    default_type application/octet-stream;
+
+                    ##
+                    # SSL Settings
+                    ##
+
+                    ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE
+                    ssl_prefer_server_ciphers on;
+
+                    ##
+                    # Logging Settings
+                    ##
+
+                    access_log /var/log/nginx/access.log;
+                    error_log /var/log/nginx/error.log;
+
+                    ##
+                    # Gzip Settings
+                    ##
+
+                    gzip on;
+
+                    # gzip_vary on;
+                    # gzip_proxied any;
+                    # gzip_comp_level 6;
+                    # gzip_buffers 16 8k;
+                    # gzip_http_version 1.1;
+                    # gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+                    ##
+                    # Virtual Host Configs
+                    ##
+
+                    include /etc/nginx/conf.d/*.conf;
+                }
+              mode: "000744"
+              owner: root
+              group: root
+            "/etc/nginx/conf.d/backend.ibrarmunir.co.conf":
+              content: |
+                server {
+                  listen 80 default_server;
+                  server_name _;
+                  location / {
+                     proxy_pass http://localhost:8000; # Your Node.js app's address
+                     proxy_http_version 1.1;
+                     proxy_set_header Upgrade $http_upgrade;
+                     proxy_set_header Connection 'upgrade';
+                     proxy_set_header Host $host;
+                     proxy_cache_bypass $http_upgrade;
+                  }
+                }
+              mode: "000744"
+              owner: root
+              group: root
+          commands:
+            01_add_benefit_form_dir:
+              command: "sudo mkdir -p /var/www/backend-app"
+            02_restart_nginx:
+              command: "sudo systemctl restart nginx"
+    Properties:
+      ImageId: ami-0261755bbcb8c4a84
+      InstanceType: t2.small
+      KeyName: hp-key-pair
+      IamInstanceProfile: !Ref MailingLabelInstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: !GetAtt VpcStack.Outputs.SubnetAppAId
+          DeleteOnTermination: "true"
+          GroupSet:
+            - !Ref BackendSecurityGroup
+      Tags:
+        - Key: Name
+          Value: mailing-label-backend-app
+      UserData:
+        "Fn::Base64":
+          "Fn::Sub":
+            - |
+              #!/bin/bash -xe
+              sudo apt update -y 
+              sudo apt install awscli -y
+              sudo apt install -y build-essential python3-pip
+              sudo apt install ruby-full -y
+              sudo apt install wget -y
+              wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
+              chmod +x ./install
+              sudo ./install auto
+              sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+              # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
+              sudo /usr/local/bin/cfn-init -s ${AWS::StackId} -r BackendInstance --configsets MailingLabelConfigSet --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
+              # Signal the status from cfn-init 
+              sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BackendInstance --region ${AWS::Region}
+              # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
+              sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+              npm i -g pm2
+              echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
+              DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)
+              echo "export DATABASE_USERNAME=${DB_USERNAME}" >> /etc/profile
+
+              DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)
+              echo "export DATABASE_PASSWORD=${DB_USER_PASSWORD}" >> /etc/profile
+
+              echo "export DATABASE_PORT=5432" >> /etc/profile
+
+              echo "export DATABASE_NAME=mailing-app" >> /etc/profile
+
+              echo "export JWT_SECRETE=thisismyjwtsecretwhichisverystronginnature" >> /etc/profile
+
+              echo "export JWT_ACCESS_TTL=1d" >> /etc/profile
+
+              echo "export WHITELISTDOMAINS=http://benefit.ibrarmunir.co,http://admin.ibrarmunir.co" >> /etc/profile
+
+              echo "export MAILING_LABEL_ENDPOINT=https://returns.usps.com/services/" >> /etc/profile
+
+              echo "export TRACKING_LABEL_ENDPOINT=https://secure.shippingapis.com/ShippingAPI.dll/" >> /etc/profile
+
+              echo "export USPS_USERNAME=7B94PRODU4857" >> /etc/profile
+
+              echo "export USPS_PASSWORD=I0908AV44M2800O" >> /etc/profile
+
+              echo "export SENDGRID_API_KEY=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" >> /etc/profile
+
+              echo "export SENDER_EMAIL=tina@gmail.com" >> /etc/profile
+
+              echo "export SENDER_NAME=Tina" >> /etc/profile
+
+              echo "export MAILGUN_API_KEY=ba1aba4c537a480105957de2596892d7-81bd92f8-645b2004" >> /etc/profile
+
+              echo "export MAILGUN_DOMAIN=sandbox96aa8ded8963466b94b1368e8ad86c47.mailgun.org" >> /etc/profile
+
+              echo "export NODE_ENV=development" >> /etc/profile
+
+              echo "export BASIC_AUTH_PASSWORD=c20dc7752af6576e16c5306aa1b08a38f4b1eba3" >> /etc/profile
+
+              echo "export AUTH_API_KEY=8a2822410de12b2dd48bf793340b8974f4e6bc3e3d99998d63fc2fd9e24c" >> /etc/profile
+
+              echo "export EASY_POST_CLINET_KEY=EZAK74999c20d3fa48c0b7583dccefb27902QnYC4LExwcurdaRpmN0f0g" >> /etc/profile
+
+              echo "export XPS_CONNECT_API_KEY=mt9OHMhEaOyU6SDFxCl55YGb8jSsaTZH" >> /etc/profile
+
+              echo "export XPS_CONNECT_CUSTOMER_ID=CEC00389" >> /etc/profile
+
+              echo "export FTP_HOSTNAME=ctltestsite.com" >> /etc/profile
+
+              echo "export FTP_USERNAME=PactCollective@ctltestsite.com" >> /etc/profile
+
+              echo "export FTP_PASSWORD=!iVqfxkjmf4L7j$x" >> /etc/profile
+
+            - DbEndpoint: !GetAtt MailingLabelDbCluster.Endpoint.Address
+
+
+  RDSDbSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "Subnet Group for Postgres database"
+      DBSubnetGroupName: !Sub "${AWS::Region}-mailing-label-database-subnet-group"
+      SubnetIds: 
+        - !GetAtt VpcStack.Outputs.SubnetDbAId
+        - !GetAtt VpcStack.Outputs.SubnetDbBId
+        - !GetAtt VpcStack.Outputs.SubnetDbCId
+       Tags: 
+        - Key: Name
+          Value: mailing-label-db-cluster
+        - Key: Environment
+          Value: Staging
+
+  MailingLabelDbCluster:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: mailing-label-db-cluster
+      AllocatedStorage: 30
+      DBInstanceClass: db.m5.xlarge
+      DBName: mailing-app
+      Engine: postgres
+      EngineVersion: "15.3"
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      MultiAZ: true
+      PubliclyAccessible: false
+      StorageType: gp2
+      Port: "5432"
+      EnableIAMDatabaseAuthentication: false
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      DBSubnetGroupName: !Ref RDSDBSubnetGroup
+      DBSecurityGroups:
+        - !Ref DbSecurityGroup
+      Tags: 
+        - Key: Name
+          Value: mailing-label-db-cluster
+        - Key: Environment
+          Value: Staging
+  
+  # CreateDbEndpointParameter:
+  #   DependsOn: MailingLabelDbCluster
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     DataType: text
+  #     Description: The database endpoint parameter
+  #     Name: /mailing-label/backend/db-endpoint
+  #     Type: String 
+  #     Tier: Standard
+  #     Value: !GetAtt MailingLabelDbCluster.Endpoint.Address

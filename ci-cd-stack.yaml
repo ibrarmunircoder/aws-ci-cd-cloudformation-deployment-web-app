@@ -26,6 +26,38 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - "ssm:GetParameters"
+                  - "ssm:GetParameter"
+                  - "ssm:GetParametersByPath"
+                  - "ssm:PutParameter"
+                  - "ssm:DeleteParameter"
+                  - "ssm:DescribeParameters"
+                  - "ssm:DescribeParameter"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "rds:DescribeDBInstances"
+                  - "rds:ListTagsForResource"
+                  - "rds:ListDBInstances"
+                  - "rds:CreateDBInstance"
+                  - "rds:CreateDBInstanceReadReplica"
+                  - "rds:DeleteDBInstance"
+                  - "rds:ModifyDBInstance"
+                  - "rds:RebootDBInstance"
+                  - "rds:RestoreDBInstanceFromDBSnapshot"
+                  - "rds:RestoreDBInstanceToPointInTime"
+                  - "rds:PromoteReadReplica"
+                  - "rds:StartDBInstance"
+                  - "rds:StopDBInstance"
+                  - "rds:AddTagsToResource"
+                  - "rds:RemoveTagsFromResource"
+                  - "rds:CreateDBSubnetGroup"
+                  - "rds:DeleteDBSubnetGroup"
+                  - "rds:DescribeDBSubnetGroups"
+                  - "rds:ModifyDBSubnetGroup"
+                Resource: !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:mailing-label-db-cluster"
+              - Effect: Allow
+                Action:
                   - "iam:CreateRole"
                   - "iam:CreateInstanceProfile"
                   - "iam:AddRoleToInstanceProfile"
