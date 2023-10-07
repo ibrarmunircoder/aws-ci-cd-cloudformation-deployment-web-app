@@ -5,10 +5,6 @@ files:
     destination: /tmp
 file_exists_behavior: OVERWRITE
 hooks:
-  BeforeInstall:
-    - location: infra/scripts/before_install.sh
-      timeout: 300
-      runas: root
   AfterInstall:
     - location: infra/scripts/after_install.sh
       timeout: 300
