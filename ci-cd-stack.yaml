@@ -59,6 +59,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:CreateRole"
+                  - "iam:CreateServiceLinkedRole"
                   - "iam:CreateInstanceProfile"
                   - "iam:AddRoleToInstanceProfile"
                   - "iam:PutRolePolicy"
