@@ -667,7 +667,7 @@ Resources:
 
               echo "export DATABASE_PORT=5432" >> /etc/profile
 
-              echo "export DATABASE_NAME=mailing-app" >> /etc/profile
+              echo "export DATABASE_NAME=mailing_app" >> /etc/profile
 
               echo "export JWT_SECRETE=thisismyjwtsecretwhichisverystronginnature" >> /etc/profile
 
@@ -737,7 +737,7 @@ Resources:
       DBInstanceIdentifier: mailing-label-db-cluster
       AllocatedStorage: 30
       DBInstanceClass: db.m5.xlarge
-      DBName: mailing-app
+      DBName: mailing_app
       Engine: postgres
       EngineVersion: "15.3"
       MasterUsername: !Ref MasterUsername
