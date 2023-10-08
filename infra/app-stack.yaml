@@ -502,7 +502,7 @@ Resources:
 
   BackendInstance:
     Type: AWS::EC2::Instance
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
     CreationPolicy:
       ResourceSignal:
         Timeout: PT5M
@@ -699,11 +699,11 @@ Resources:
 
               npm i -g pm2
               sudo echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
-              DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)
+              DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --region ${AWS::Region} --query 'Parameter.Value' --output text)
 
               sudo echo "export DATABASE_USERNAME=$DB_USERNAME" >> /etc/profile
 
-              DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)
+              DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --region ${AWS::Region} --query 'Parameter.Value' --output text)
 
               sudo echo "export DATABASE_PASSWORD=$DB_USER_PASSWORD" >> /etc/profile
 
