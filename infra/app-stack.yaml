@@ -150,10 +150,20 @@ Resources:
                 [cfn-auto-reloader-hook]
                 triggers=post.update
                 path=Resources.BenefitFormInstance.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BenefitFormInstance --region ${AWS::Region}
+                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackName} --configsets MailingLabelConfigSet --resource BenefitFormInstance --region ${AWS::Region}
               mode: "000400"
               owner: "root"
               group: "root"
+            "/lib/systemd/system/cfn-hup.service":
+              content: |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/usr/local/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
           commands:
             01_add_nodesource_key:
               command: "sudo mkdir -p /etc/apt/keyrings"
@@ -168,6 +178,10 @@ Resources:
             05_remove_nginx_config:
               command: "sudo rm nginx.conf"
               cwd: "/etc/nginx"
+            06_enable_cfn_hup:
+              command: "sudo systemctl enable cfn-hup.service"
+            07_start_cfn_hup:
+              command: "sudo systemctl start cfn-hup.service"
           services:
             sysvinit:
               nginx:
@@ -288,12 +302,12 @@ Resources:
            chmod +x ./install
            sudo ./install auto
            sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+           sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
            # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
            sudo /usr/local/bin/cfn-init -s ${AWS::StackId} -r BenefitFormInstance --configsets MailingLabelConfigSet --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
            # Signal the status from cfn-init 
            sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BenefitFormInstance --region ${AWS::Region}
-           # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
-           sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+
   AdminPanelFormInstance:
     Type: AWS::EC2::Instance
     DeletionPolicy: Delete
@@ -328,10 +342,20 @@ Resources:
                 [cfn-auto-reloader-hook]
                 triggers=post.update
                 path=Resources.AdminPanelFormInstance.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource AdminPanelFormInstance --region ${AWS::Region}
+                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource AdminPanelFormInstance --configsets MailingLabelConfigSet --region ${AWS::Region}
               mode: "000400"
               owner: "root"
               group: "root"
+            "/lib/systemd/system/cfn-hup.service":
+              content: |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/usr/local/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
           commands:
             01_add_nodesource_key:
               command: "sudo mkdir -p /etc/apt/keyrings"
@@ -346,6 +370,10 @@ Resources:
             05_remove_nginx_config:
               command: "sudo rm nginx.conf"
               cwd: "/etc/nginx"
+            06_enable_cfn_hup:
+              command: "sudo systemctl enable cfn-hup.service"
+            07_start_cfn_hup:
+              command: "sudo systemctl start cfn-hup.service"
           services:
             sysvinit:
               nginx:
@@ -466,12 +494,12 @@ Resources:
            chmod +x ./install
            sudo ./install auto
            sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+           sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
            # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
            sudo /usr/local/bin/cfn-init -s ${AWS::StackId} -r AdminPanelFormInstance --configsets MailingLabelConfigSet --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
            # Signal the status from cfn-init 
            sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource AdminPanelFormInstance --region ${AWS::Region}
-           # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
-           sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+
   BackendInstance:
     Type: AWS::EC2::Instance
     DeletionPolicy: Delete
@@ -506,10 +534,20 @@ Resources:
                 [cfn-auto-reloader-hook]
                 triggers=post.update
                 path=Resources.BackendInstance.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BackendInstance --region ${AWS::Region}
+                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackName} --configsets MailingLabelConfigSet --resource BackendInstance --region ${AWS::Region}
               mode: "000400"
               owner: "root"
               group: "root"
+            "/lib/systemd/system/cfn-hup.service":
+              content: |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/usr/local/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
           commands:
             01_add_nodesource_key:
               command: "sudo mkdir -p /etc/apt/keyrings"
@@ -524,6 +562,10 @@ Resources:
             05_remove_nginx_config:
               command: "sudo rm nginx.conf"
               cwd: "/etc/nginx"
+            06_enable_cfn_hup:
+              command: "sudo systemctl enable cfn-hup.service"
+            07_start_cfn_hup:
+              command: "sudo systemctl start cfn-hup.service"
           services:
             sysvinit:
               nginx:
@@ -650,12 +692,11 @@ Resources:
               chmod +x ./install
               sudo ./install auto
               sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+              sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
               # Start cfn-init to Install all Metadata content (pacakges, sources, files, commands and services )
               sudo /usr/local/bin/cfn-init -s ${AWS::StackId} -r BackendInstance --configsets MailingLabelConfigSet --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
               # Signal the status from cfn-init 
-              sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BackendInstance --region ${AWS::Region}
-              # Start cfn-hup daemon so that it will keep listening to any changes to EC2 Instance Metadata. 
-              sudo /usr/local/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+
               npm i -g pm2
               echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
               DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)
@@ -710,6 +751,8 @@ Resources:
               echo "export FTP_USERNAME=PactCollective@ctltestsite.com" >> /etc/profile
 
               echo "export FTP_PASSWORD=!iVqfxkjmf4L7j$x" >> /etc/profile
+
+              sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BackendInstance --region ${AWS::Region}
 
             - DbEndpoint: !GetAtt MailingLabelDbCluster.Endpoint.Address
 
