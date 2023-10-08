@@ -698,59 +698,60 @@ Resources:
               # Signal the status from cfn-init 
 
               npm i -g pm2
-              echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
+              sudo echo "export DATABASE_HOST=${DbEndpoint}" >> /etc/profile
               DB_USERNAME=$(aws ssm get-parameter --name /mailing-label/backend/db-username --query 'Parameter.Value' --output text)
-              echo "export DATABASE_USERNAME=$DB_USERNAME" >> /etc/profile
+
+              sudo echo "export DATABASE_USERNAME=$DB_USERNAME" >> /etc/profile
 
               DB_USER_PASSWORD=$(aws ssm get-parameter --name /mailing-label/backend/db-password --query 'Parameter.Value' --output text)
 
-              echo "export DATABASE_PASSWORD=$DB_USER_PASSWORD" >> /etc/profile
+              sudo echo "export DATABASE_PASSWORD=$DB_USER_PASSWORD" >> /etc/profile
 
-              echo "export DATABASE_PORT=5432" >> /etc/profile
+              sudo echo "export DATABASE_PORT=5432" >> /etc/profile
 
-              echo "export DATABASE_NAME=mailing_app" >> /etc/profile
+              sudo echo "export DATABASE_NAME=mailing_app" >> /etc/profile
 
-              echo "export JWT_SECRETE=thisismyjwtsecretwhichisverystronginnature" >> /etc/profile
+              sudo echo "export JWT_SECRETE=thisismyjwtsecretwhichisverystronginnature" >> /etc/profile
 
-              echo "export JWT_ACCESS_TTL=1d" >> /etc/profile
+              sudo echo "export JWT_ACCESS_TTL=1d" >> /etc/profile
 
-              echo "export WHITELISTDOMAINS=http://benefit.ibrarmunir.co,http://admin.ibrarmunir.co" >> /etc/profile
+              sudo echo "export WHITELISTDOMAINS=http://benefit.ibrarmunir.co,http://admin.ibrarmunir.co" >> /etc/profile
 
-              echo "export MAILING_LABEL_ENDPOINT=https://returns.usps.com/services/" >> /etc/profile
+              sudo echo "export MAILING_LABEL_ENDPOINT=https://returns.usps.com/services/" >> /etc/profile
 
-              echo "export TRACKING_LABEL_ENDPOINT=https://secure.shippingapis.com/ShippingAPI.dll/" >> /etc/profile
+              sudo echo "export TRACKING_LABEL_ENDPOINT=https://secure.shippingapis.com/ShippingAPI.dll/" >> /etc/profile
 
-              echo "export USPS_USERNAME=7B94PRODU4857" >> /etc/profile
+              sudo echo "export USPS_USERNAME=7B94PRODU4857" >> /etc/profile
 
-              echo "export USPS_PASSWORD=I0908AV44M2800O" >> /etc/profile
+              sudo echo "export USPS_PASSWORD=I0908AV44M2800O" >> /etc/profile
 
-              echo "export SENDGRID_API_KEY=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" >> /etc/profile
+              sudo echo "export SENDGRID_API_KEY=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" >> /etc/profile
 
-              echo "export SENDER_EMAIL=tina@gmail.com" >> /etc/profile
+              sudo echo "export SENDER_EMAIL=tina@gmail.com" >> /etc/profile
 
-              echo "export SENDER_NAME=Tina" >> /etc/profile
+              sudo echo "export SENDER_NAME=Tina" >> /etc/profile
 
-              echo "export MAILGUN_API_KEY=ba1aba4c537a480105957de2596892d7-81bd92f8-645b2004" >> /etc/profile
+              sudo echo "export MAILGUN_API_KEY=ba1aba4c537a480105957de2596892d7-81bd92f8-645b2004" >> /etc/profile
 
-              echo "export MAILGUN_DOMAIN=sandbox96aa8ded8963466b94b1368e8ad86c47.mailgun.org" >> /etc/profile
+              sudo echo "export MAILGUN_DOMAIN=sandbox96aa8ded8963466b94b1368e8ad86c47.mailgun.org" >> /etc/profile
 
-              echo "export NODE_ENV=development" >> /etc/profile
+              sudo echo "export NODE_ENV=development" >> /etc/profile
 
-              echo "export BASIC_AUTH_PASSWORD=c20dc7752af6576e16c5306aa1b08a38f4b1eba3" >> /etc/profile
+              sudo echo "export BASIC_AUTH_PASSWORD=c20dc7752af6576e16c5306aa1b08a38f4b1eba3" >> /etc/profile
 
-              echo "export AUTH_API_KEY=8a2822410de12b2dd48bf793340b8974f4e6bc3e3d99998d63fc2fd9e24c" >> /etc/profile
+              sudo echo "export AUTH_API_KEY=8a2822410de12b2dd48bf793340b8974f4e6bc3e3d99998d63fc2fd9e24c" >> /etc/profile
 
-              echo "export EASY_POST_CLINET_KEY=EZAK74999c20d3fa48c0b7583dccefb27902QnYC4LExwcurdaRpmN0f0g" >> /etc/profile
+              sudo echo "export EASY_POST_CLINET_KEY=EZAK74999c20d3fa48c0b7583dccefb27902QnYC4LExwcurdaRpmN0f0g" >> /etc/profile
 
-              echo "export XPS_CONNECT_API_KEY=mt9OHMhEaOyU6SDFxCl55YGb8jSsaTZH" >> /etc/profile
+              sudo echo "export XPS_CONNECT_API_KEY=mt9OHMhEaOyU6SDFxCl55YGb8jSsaTZH" >> /etc/profile
 
-              echo "export XPS_CONNECT_CUSTOMER_ID=CEC00389" >> /etc/profile
+              sudo echo "export XPS_CONNECT_CUSTOMER_ID=CEC00389" >> /etc/profile
 
-              echo "export FTP_HOSTNAME=ctltestsite.com" >> /etc/profile
+              sudo echo "export FTP_HOSTNAME=ctltestsite.com" >> /etc/profile
 
-              echo "export FTP_USERNAME=PactCollective@ctltestsite.com" >> /etc/profile
+              sudo echo "export FTP_USERNAME=PactCollective@ctltestsite.com" >> /etc/profile
 
-              echo "export FTP_PASSWORD=!iVqfxkjmf4L7j$x" >> /etc/profile
+              sudo echo "export FTP_PASSWORD=!iVqfxkjmf4L7j$x" >> /etc/profile
 
               sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BackendInstance --region ${AWS::Region}
 
