@@ -774,18 +774,6 @@ Resources:
         - Key: Environment
           Value: Staging
 
-  RDSDBParameterGroup:
-    Type: "AWS::RDS::DBParameterGroup"
-    Properties:
-      Description: CloudFormation Postgres Parameter Group
-      Family: postgres15
-      Parameters:
-        sql_mode: IGNORE_SPACE
-        max_allowed_packet: 1024
-        innodb_buffer_pool_size: "{DBInstanceClassMemory*3/4}"
-        force_ssl: 0
-        authentication_timeout: 600000
-
   MailingLabelDbCluster:
     Type: AWS::RDS::DBInstance
     DependsOn:
