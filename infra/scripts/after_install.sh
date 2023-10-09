@@ -15,9 +15,8 @@ then
     rm -rf /var/www/backend-app/*
     mv /tmp/backend-app/* /var/www/backend-app/
     /etc/profile 
-    printenv
-    # npm --prefix /var/www/backend-app install
-    # npm --prefix /var/www/backend-app run migration:up
-    # npm --prefix /var/www/backend-app run build
-    # npm --prefix /var/www/backend-app run start
+    npm --prefix /var/www/backend-app install
+    npm --prefix /var/www/backend-app run migration:up
+    npm --prefix /var/www/backend-app run build
+    npm --prefix /var/www/backend-app run start
 fi
