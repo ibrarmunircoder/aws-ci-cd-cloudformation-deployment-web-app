@@ -502,7 +502,7 @@ Resources:
 
   BackendInstance:
     Type: AWS::EC2::Instance
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
     CreationPolicy:
       ResourceSignal:
         Timeout: PT5M
@@ -787,6 +787,7 @@ Resources:
       AllocatedStorage: 30
       DBInstanceClass: db.m5.xlarge
       DBName: mailing_app
+      DBParameterGroupName: "mailing-label-postgres"
       Engine: postgres
       EngineVersion: "15.3"
       MasterUsername: !Ref MasterUsername

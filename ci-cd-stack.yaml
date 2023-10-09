@@ -85,6 +85,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "ec2:AcceptVpcPeeringConnection"
+                  - "ec2:StopInstances"
                   - "ec2:TerminateInstances"
                   - "ec2:RunInstances"
                   - "ec2:AcceptVpcEndpointConnections"
