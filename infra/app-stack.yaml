@@ -783,7 +783,6 @@ Resources:
       DBInstanceIdentifier: mailing-label-db-cluster
       AllocatedStorage: 30
       DBInstanceClass: db.m5.xlarge
-      DBParameterGroupName: !Ref RDSDBParameterGroup
       DBName: mailing_app
       Engine: postgres
       EngineVersion: "15.3"
