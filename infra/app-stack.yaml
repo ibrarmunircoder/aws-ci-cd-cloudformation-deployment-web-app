@@ -755,6 +755,8 @@ Resources:
 
               sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BackendInstance --region ${AWS::Region}
 
+              source /etc/profile
+
             - DbEndpoint: !GetAtt MailingLabelDbCluster.Endpoint.Address
 
   RDSDBSubnetGroup:
@@ -772,6 +774,18 @@ Resources:
         - Key: Environment
           Value: Staging
 
+  RDSDBParameterGroup:
+  Type: "AWS::RDS::DBParameterGroup"
+  Properties:
+    Description: CloudFormation Postgres Parameter Group
+    Family: postgres15
+    Parameters:
+      sql_mode: IGNORE_SPACE
+      max_allowed_packet: 1024
+      innodb_buffer_pool_size: "{DBInstanceClassMemory*3/4}"
+      force_ssl: 0
+      authentication_timeout: 600000
+
   MailingLabelDbCluster:
     Type: AWS::RDS::DBInstance
     DependsOn:
@@ -781,6 +795,7 @@ Resources:
       DBInstanceIdentifier: mailing-label-db-cluster
       AllocatedStorage: 30
       DBInstanceClass: db.m5.xlarge
+      DBParameterGroupName: !Ref RDSDBParameterGroup
       DBName: mailing_app
       Engine: postgres
       EngineVersion: "15.3"
@@ -801,14 +816,3 @@ Resources:
           Value: mailing-label-db-cluster
         - Key: Environment
           Value: Staging
-
-  # CreateDbEndpointParameter:
-  #   DependsOn: MailingLabelDbCluster
-  #   Type: AWS::SSM::Parameter
-  #   Properties:
-  #     DataType: text
-  #     Description: The database endpoint parameter
-  #     Name: /mailing-label/backend/db-endpoint
-  #     Type: String
-  #     Tier: Standard
-  #     Value: !GetAtt MailingLabelDbCluster.Endpoint.Address
