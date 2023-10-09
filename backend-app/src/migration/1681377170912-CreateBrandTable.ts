@@ -17,7 +17,7 @@ export class CreateBrandTable1681377170912 implements MigrationInterface {
           {
             name: 'hostname',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'name',

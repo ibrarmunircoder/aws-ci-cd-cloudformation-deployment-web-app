@@ -16,7 +16,7 @@ export class BrandsEntity {
   @Column({ type: 'varchar', nullable: false })
   name: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: true })
   hostname: string;
 
   @Column({ type: 'varchar', nullable: true })
