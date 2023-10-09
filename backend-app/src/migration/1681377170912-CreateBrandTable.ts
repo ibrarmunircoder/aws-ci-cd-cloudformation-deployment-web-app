@@ -1,5 +1,5 @@
 import { BrandsEntity } from 'src/brands/entities';
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableColumn  } from 'typeorm';
 
 export class CreateBrandTable1681377170912 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -51,6 +51,14 @@ export class CreateBrandTable1681377170912 implements MigrationInterface {
             onUpdate: 'now()',
           },
         ],
+      }),
+    );
+     await queryRunner.addColumn(
+      'brand',
+      new TableColumn({
+        name: 'templateName',
+        type: 'varchar',
+        isNullable: true,
       }),
     );
     await queryRunner.manager.save(BrandsEntity, {
