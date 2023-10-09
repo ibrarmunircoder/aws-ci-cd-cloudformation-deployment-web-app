@@ -753,6 +753,9 @@ Resources:
 
               sudo echo "export FTP_PASSWORD=!iVqfxkjmf4L7j$x" >> /etc/profile
 
+              sudo echo "export EMAIL_DISABLED_PRODUCTS=make your pact bin co-branded,pact collection bin replenish kit - 10 pack,pact collection bin replenish kit - 5 pack,pact collection bin replenish kit - 3 pack,pact collection bin starter kit,pact membership renewal,pact collective membership
+              " >> /etc/profile
+
               sudo /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BackendInstance --region ${AWS::Region}
 
               source /etc/profile
