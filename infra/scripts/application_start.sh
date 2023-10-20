@@ -1,4 +1,3 @@
-#!/bin/bash
 
 if [[ "$DEPLOYMENT_GROUP_NAME" == "MailingBackendAppDeploymentGroup" ]]
 then
