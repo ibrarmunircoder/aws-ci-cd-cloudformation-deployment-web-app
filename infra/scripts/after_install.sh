@@ -18,5 +18,4 @@ then
     npm --prefix /var/www/backend-app install
     npm --prefix /var/www/backend-app run migration:up
     npm --prefix /var/www/backend-app run build
-    npm --prefix /var/www/backend-app run start
 fi

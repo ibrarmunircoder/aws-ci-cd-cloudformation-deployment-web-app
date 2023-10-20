@@ -5,7 +5,15 @@ files:
     destination: /tmp
 file_exists_behavior: OVERWRITE
 hooks:
+  ApplicationStop:
+    - location: infra/scripts/application_stop.sh
+      timeout: 300
+      runas: root
   AfterInstall:
     - location: infra/scripts/after_install.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/application_start.sh
       timeout: 300
       runas: root
