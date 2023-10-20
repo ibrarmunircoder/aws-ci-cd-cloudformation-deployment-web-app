@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    REACT_APP_MAILING_BACKEND: "http://api.ibrarmunir.co"
+    BACKEND_URL: "http://api.ibrarmunir.co"
 
 phases:
   install:
@@ -19,7 +19,7 @@ phases:
   build:
     commands:
       - echo "🚧 Starting compiling packages..."
-      - export "${REACT_APP_MAILING_BACKEND}"
+      - export REACT_APP_MAILING_BACKEND=${BACKEND_URL}
       - npm --prefix ./benefit-form run build
       - npm --prefix ./admin-panel run build
       - echo "✅ Build passed successfully."
